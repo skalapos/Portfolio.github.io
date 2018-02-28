@@ -3,9 +3,9 @@
 
 ### Libraries Needed:</br>
 1.*Steganography App:*
-   - OpenCv 3
+   - [OpenCv 3](https://opencv.org/)
    - Python3
-   - numpy
-   - PIL
+   - [NumPy](http://www.numpy.org/)
+   - [Pillow](https://pillow.readthedocs.io/en/latest/installation.html)
    - Tkinter
       
