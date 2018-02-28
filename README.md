@@ -1,12 +1,11 @@
 # Portfolio.github.io
-Portfolio for Steven Kalapos
+## **Portfolio for Steven Kalapos**
 
-Libraries Needed:
-
-  Steganography App:
-      -OpenCv 3
-      -Python3
-      -numpy
-      -PIL
-      -Tkinter
+### Libraries Needed:</br>
+1.*Steganography App:*
+   - OpenCv 3
+   - Python3
+   - numpy
+   - PIL
+   - Tkinter
       
