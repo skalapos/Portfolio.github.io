@@ -2,7 +2,7 @@
  * @file stegMain.py
  * @author Steven Kalapos 
  * @date January 2018
- * @modified Feb 19 2018
+ * @modified March 2 2018
  * @brief contains DCT steg GUI and frontend funtions
  */
  """
@@ -20,8 +20,43 @@ root.resizable(0,0)
 
 endImage = None
 startImage = None
+versionNum = "v2.5"
+lock = 0
+
+quickMess = None
 
 #GENERAL FUNCTIONS
+def aboutFunc(event):
+    window = tk.Toplevel(root)
+    window.title("About")
+    l1 = tk.Label(window, text = "Image Hider "+versionNum)
+    l1.grid(row = 0, column=1)
+    l2 = tk.Label(window, text = "Compatible with PNG and JPEG images")
+    l2.grid(row = 1, column=1)
+    l3 = tk.Label(window, text = "Copyright Steven Kalapos 2018")
+    l3.grid(row = 2, column=1)
+
+def createMenBar():
+    menubar = tk.Menu(root)
+    
+    #file menu
+    toolsMenu = tk.Menu(menubar, tearoff=0)
+    
+    toolsMenu.add_command(label="Encrypt", command=lambda:quickEncrypt(None), accelerator = "Ctrl+E")
+    toolsMenu.bind_all("<Control-e>",quickEncrypt)
+    toolsMenu.add_command(label="Decrypt", command=lambda:quickDecrypt(None), accelerator = "Ctrl+D")
+    toolsMenu.bind_all("<Control-d>",quickDecrypt)
+    toolsMenu.add_separator()
+    toolsMenu.add_command(label="Exit", command=lambda:exitFunc(None), accelerator = "Ctrl+X")
+    toolsMenu.bind_all("<Control-x>",exitFunc)
+    menubar.add_cascade(label="File", menu=toolsMenu)
+
+    #help menu
+    helpMenu = tk.Menu(menubar, tearoff=0)
+    helpMenu.add_command(label="About Image Hider...", command=lambda:aboutFunc(None))
+    menubar.add_cascade(label="Help", menu=helpMenu)
+
+    root.config(menu=menubar)
 
 def exitFunc(event):
     result = tk.messagebox.askyesno("Exit", "Do you wish to Exit?")
@@ -38,6 +73,59 @@ def openFunc(event):
         return None
 
 #ENCRYPT FUNCTIONS
+def quickEncrypt(event):
+    global messageWindow
+    inFile = openFunc(None)
+    
+    if inFile == None:
+        print("Encryption Error: File Not Opened!")
+        return
+
+    #convert jpeg to png if needed
+    if inFile[-4:]==".jpg":
+        im = Image.open(inFile)
+        im.save(inFile[:-4]+".png")
+        inFile = (inFile[:-4]+".png")
+
+    setSecretWindow()
+
+    while lock == 0:
+        messageWindow.update_idletasks()
+        messageWindow.update()
+
+    outFile = filedialog.asksaveasfilename(defaultextension = "png",initialdir= '/',title = 'Save As...', filetypes = (("PNG files","*.png"),("all files","*.*")))
+    
+    if outFile:
+        x = DCT()
+        secret = x.DCTEn(inFile, quickMess, outFile)
+    else:
+        print('No filename given')
+        return
+
+def setSecretWindow():
+    global messageWindow
+    messageWindow = tk.Toplevel(root)
+    
+    #get secret message
+    l1 = tk.Label(messageWindow, text = "Enter Message:")
+    l1.grid(row=0, column=0)
+    uid = tk.Entry(messageWindow)
+    uid.config(width = 75)
+    uid.grid(row = 0, column = 1)
+
+    messageWindow.overrideredirect(1)
+
+    button = tk.Button(messageWindow, text="Confirm Message", command = lambda:setSecret(uid.get()))
+    button.grid(row = 1, column = 1)
+
+def setSecret(userIn):
+    global lock
+    global quickMess
+    global messageWindow
+    lock = 1
+    quickMess = userIn
+    messageWindow.destroy()
+
 def goBackEn(event):
     global encryptScreen
 
@@ -172,8 +260,6 @@ def encryptFn(event):
         endImage = tk.Label(newImgFrame, image=photo, height = 450, width = 300, text = 'Encrypted Image')
         endImage.image = photo
         endImage.pack()
-
-
     else:
         print('No filename given')
         return
@@ -185,6 +271,34 @@ def encryptControl(event):
     inFile = None
 
 #DECRYPT FUNCTIONS
+def quickDecrypt(event):
+    global deFile
+    deFile = None
+
+    deFile = openFunc(None)
+
+    if deFile == None:
+        print("Decryption Error: File Not Opened!")
+        return
+
+    #convert jpeg to png if needed
+    if deFile[-4:]==".jpg":
+        print("Decrytion Error: File format not supported")
+        return
+
+    if deFile:
+        y = DCT()
+        decode = y.DCTDe(deFile)
+    else:
+        print('No filename given')
+        return
+
+    global messageWindow
+    messageWindow = tk.Toplevel(root)
+
+    l1 = tk.Label(messageWindow, text = "Secret Message: "+decode)
+    l1.pack()
+
 def goBackDe(event):
     global decryptScreen
 
@@ -327,8 +441,10 @@ def openingScreen():
     decryptButton = tk.Button(startScreen, text="Decrypt", command=lambda:decryptControl(None))
     decryptButton.pack()
 
-    root.title("Image Hider v2.2.3")
+    root.title("Image Hider "+ versionNum)
     center(root)
+
+    createMenBar()
 
 def main():
     global quit
